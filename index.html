@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="format-detection" content="telephone=no">
-<title>자막 편집기 · v3</title>
+<title>자막 편집기 · v4</title>
 <style>
   :root{
     --bg:#06070a; --bg2:#0a0c11;
@@ -168,6 +168,45 @@
   }
   .playbtn:active{transform:scale(.94);background:#dfe4ee;}
 
+  /* ================= v4 scrubber ================= */
+  .scrubwrap{flex:0 0 auto;padding:0 18px 8px;display:flex;align-items:center;}
+  .scrubwrap .sc{flex:1 1 auto;min-width:0;position:relative;height:26px;display:flex;align-items:center;}
+  .scrubwrap input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:26px;margin:0;background:transparent;
+    outline:none;touch-action:none;--p:0%;
+  }
+  .scrubwrap input[type=range]::-webkit-slider-runnable-track{
+    height:7px;border-radius:4px;
+    background:linear-gradient(90deg,var(--lime) 0,var(--lime) var(--p),#232b37 var(--p),#232b37 100%);
+  }
+  .scrubwrap input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;margin-top:-6.5px;
+    box-shadow:0 0 0 4px rgba(212,255,51,.16),0 2px 8px rgba(0,0,0,.6);
+  }
+  .scrubwrap input[type=range]:active::-webkit-slider-thumb{
+    background:var(--lime);box-shadow:0 0 0 6px rgba(212,255,51,.22),0 2px 10px rgba(0,0,0,.6);
+  }
+  .scrubwrap input[type=range]::-moz-range-track{height:7px;border-radius:4px;background:#232b37;}
+  .scrubwrap input[type=range]::-moz-range-progress{height:7px;border-radius:4px;background:var(--lime);}
+  .scrubwrap input[type=range]::-moz-range-thumb{width:20px;height:20px;border:0;border-radius:50%;background:#fff;}
+
+  /* ================= v4 stage mini controls ================= */
+  .minictl{
+    position:absolute;left:50%;bottom:7px;transform:translateX(-50%);z-index:6;
+    display:flex;align-items:center;gap:1px;padding:3px;border-radius:16px;
+    background:rgba(6,8,12,.6);border:1px solid rgba(255,255,255,.13);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    box-shadow:0 4px 18px rgba(0,0,0,.4);opacity:.94;transition:opacity .16s;
+  }
+  .minictl button{
+    height:27px;min-width:38px;padding:0 7px;border-radius:13px;color:#eef2f8;
+    font-size:10.5px;font-weight:850;display:grid;place-items:center;
+    font-variant-numeric:tabular-nums;letter-spacing:-.2px;
+  }
+  .minictl button:active{background:rgba(255,255,255,.17);}
+  .minictl .mp{width:32px;min-width:32px;padding:0;background:rgba(255,255,255,.94);color:#08090c;font-size:11.5px;padding-left:1px;}
+  body.playing .minictl{opacity:.5;}
+
   /* ================= timeline ================= */
   .timeline{flex:0 0 auto;display:flex;flex-direction:column;min-height:0;padding:2px 0 0;}
   .tlscroll{
@@ -247,7 +286,8 @@
     padding:11px 18px calc(12px + env(safe-area-inset-bottom));
     display:flex;flex-direction:column;gap:9px;
   }
-  .dockhead{display:flex;align-items:center;gap:6px;min-height:20px;}
+  .dockhead{display:flex;align-items:center;gap:6px;min-height:26px;}
+  .dockhead .iconact.add{width:auto;min-width:0;padding:0 9px;font-size:10.5px;font-weight:850;color:#d6f07c;background:#1a2010;border-color:#3b4523;display:inline-flex;align-items:center;gap:3px;}
   .selTag{
     font-size:10.5px;font-weight:800;color:#98a3b5;white-space:nowrap;
     overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;min-width:0;
@@ -271,11 +311,15 @@
   textarea#ta:focus{border-color:#5e6c31;box-shadow:0 0 0 3px rgba(212,255,51,.09);background:#0a0f08;}
   .applybtn{
     width:100%;height:42px;border-radius:11px;background:var(--lime);color:var(--limeDk);
-    font-size:13px;font-weight:900;letter-spacing:-.2px;
-    transition:transform .12s,opacity .12s;
+    font-size:13px;font-weight:900;letter-spacing:-.2px;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;padding:0 12px;
+    transition:transform .12s,opacity .12s,background .12s;
   }
+  .applybtn.newsub{background:#e6ff86;font-size:12.5px;}
   .applybtn:active{transform:scale(.985);background:#c8e34f;}
   .applybtn:disabled{opacity:.28;}
+  .btns.one{grid-template-columns:1fr;}
+  .btns button.vid{background:#1a2010;border-color:#3b4523;color:#e7f7b8;}
 
   /* ================= sheets ================= */
   .scrim{position:fixed;inset:0;background:rgba(3,4,6,.7);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
@@ -422,7 +466,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="mark"></div>
-      <div class="bt">자막 편집기<span class="ver">v3</span></div>
+      <div class="bt">자막 편집기<span class="ver">v4</span></div>
     </div>
     <div class="hacts">
       <button class="tb ask" id="btnAsk">💬 참외 요청</button>
@@ -439,6 +483,11 @@
       <div class="titleLayer"><div class="titleBox" id="titleBox"></div></div>
       <div class="subLayer" id="subLayer"><div class="sub" id="subBox" data-style="box"></div></div>
       <button class="bigplay" id="bigplay" aria-label="재생">▶</button>
+      <div class="minictl" id="minictl">
+        <button id="mBack" aria-label="3초 뒤로">−3초</button>
+        <button class="mp" id="mPlay" aria-label="재생/정지">▶</button>
+        <button id="mFwd" aria-label="3초 앞으로">+3초</button>
+      </div>
     </div>
   </div>
 
@@ -449,6 +498,10 @@
       <button class="chipctrl" id="zoomChip">줌 1×</button>
       <button class="playbtn" id="btnPlay" aria-label="재생/정지">▶</button>
     </div>
+  </div>
+
+  <div class="scrubwrap">
+    <div class="sc"><input type="range" id="scrub" min="0" max="33.33" step="0.05" value="0" aria-label="재생 위치 (좌우로 밀어 앞뒤 이동)"></div>
   </div>
 
   <section class="timeline">
@@ -475,6 +528,7 @@
   <section class="dock" id="dock">
     <div class="dockhead">
       <span class="selTag" id="selTag">＋ 새 자막</span>
+      <button class="iconact add" id="btnNew" aria-label="새 자막">＋ 새 자막</button>
       <button class="iconact" id="btnSplit" style="display:none" aria-label="분할">✂️</button>
       <button class="iconact del" id="btnDel" style="display:none" aria-label="삭제">🗑</button>
     </div>
@@ -556,13 +610,16 @@ var uid = 1;
 var undoStack = [];
 var frames = [], peaks = null, PEAK_RATE = 400, wvState = "idle";
 var drag = null, pinch = null, seeking = false, hasGesture = false;
+var seekT = -1, seekAt = 0, scrubDrag = false;
 var saveTimer = null, toastTimer = null, bannerTimer = null, sheetMode = null;
 
 var el = {};
 ["banner","bannerX","stageCol","stage","video","titleBox","subLayer","subBox","bigplay",
+ "minictl","mBack","mPlay","mFwd",
  "nowT","totT","speedChip","zoomChip","btnPlay","btnMore","btnAsk","btnExport",
+ "scrub",
  "tlScroll","tlContent","ruler","media","thumbCv","wvBase","wvProg","wvClip","wvMsg","track","playhead","phHead","phT",
- "dock","selTag","btnSplit","btnDel","ta","btnApply",
+ "dock","selTag","btnNew","btnSplit","btnDel","ta","btnApply",
  "scrim","sheet","sheetTitle","sheetBody","sheetFoot","sheetClose","toast","fVideo","fSub"
 ].forEach(function(k){ el[k] = $(k); });
 
@@ -627,40 +684,70 @@ function undo(){
 /* ============================================================
    시간 / 재생
    ============================================================ */
+var _ppsCache = 0;
 function pps(){
+  if (_ppsCache > 0) return _ppsCache;
   var w = el.tlScroll.clientWidth || 360;
   var fit = Math.max(3, (w - PAD*2) / Math.max(0.4, S.dur));
-  return fit * zoom;
+  _ppsCache = fit * zoom;
+  return _ppsCache;
+}
+function invalidatePps(){ _ppsCache = 0; }
+
+function requestSeek(t){
+  var v = el.video;
+  if (!v || v.readyState < 1) return;
+  seekT = clamp(t, 0, S.dur);
+  seekAt = performance.now();
+  seeking = true;
+  try {
+    if (Math.abs((v.currentTime || 0) - seekT) > 0.015) v.currentTime = seekT;
+  } catch(e){ seeking = false; }
 }
 function setTime(t, silent){
   cur = clamp(t, 0, S.dur);
-  if (el.video.readyState >= 1) {
-    try { if (Math.abs(el.video.currentTime - cur) > 0.03) { seeking = true; el.video.currentTime = cur; } } catch(e){}
-  }
+  requestSeek(cur);
   updateUI();
   if (!silent && !playing) syncEditor();
+}
+function readVideoTime(){
+  var v = el.video;
+  if (!v || v.readyState < 1 || seeking) return false;
+  var t = clamp(v.currentTime || 0, 0, S.dur);
+  if (Math.abs(t - cur) < 0.006) return false;
+  cur = t;
+  return true;
 }
 function nudge(d){
   if (playing) pause();
   markGesture();
   setTime(cur + d);
 }
+function jump(d){
+  markGesture();
+  setTime(clamp(cur + d, 0, S.dur));
+}
 function play(){
   if (playing) return;
   markGesture();
-  var p = el.video.play();
-  if (p && p.catch) p.catch(function(){ toast("재생이 막혔어요 · 화면을 한 번 탭해 주세요"); });
   playing = true;
   document.body.classList.add("playing");
   updateUI();
+  var p = el.video.play();
+  if (p && p.catch) p.catch(function(){
+    playing = false;
+    document.body.classList.remove("playing");
+    updateUI();
+    toast("재생이 막혔어요 · 재생 버튼을 한 번 더 눌러 주세요");
+  });
 }
 function pause(){
-  if (!playing) return;
+  if (!playing && el.video.paused) return;
   playing = false;
   try { el.video.pause(); } catch(e){}
   document.body.classList.remove("playing");
   updateUI();
-  syncEditor();
+  if (!seeking) syncEditor();
 }
 function togglePlay(){ playing ? pause() : play(); }
 function markGesture(){
@@ -673,6 +760,8 @@ function updateUI(){
   el.nowT.textContent = fmt(t);
   el.totT.textContent = S.dur.toFixed(1);
   el.btnPlay.textContent = playing ? "❚❚" : "▶";
+  if (el.mPlay) el.mPlay.textContent = playing ? "❚❚" : "▶";
+  syncScrub();
   var P = pps(), x = t * P, W = S.dur * P;
   el.playhead.style.transform = "translateX(" + x.toFixed(1) + "px)";
   var shift = x < 18 ? (18 - x) : (x > W - 18 ? (W - 18) - x : 0);
@@ -694,6 +783,13 @@ function ensureVisible(x){
   var sc = el.tlScroll, w = sc.clientWidth, sl = sc.scrollLeft;
   if (x < sl + 24) sc.scrollLeft = Math.max(0, x - 24);
   else if (x > sl + w - 52) sc.scrollLeft = Math.max(0, x - w * 0.55);
+}
+function syncScrub(){
+  var s = el.scrub;
+  if (!s) return;
+  var v = cur.toFixed(2);
+  if (!scrubDrag && s.value !== v) s.value = v;
+  s.style.setProperty("--p", (S.dur ? (cur / S.dur) * 100 : 0).toFixed(2) + "%");
 }
 function activeAt(t){
   for (var i=0;i<S.subs.length;i++){
@@ -752,6 +848,7 @@ function updateOverlay(){
    타임라인 렌더
    ============================================================ */
 function layoutTimeline(){
+  invalidatePps();
   var P = pps(), W = Math.max(24, S.dur * P);
   el.tlContent.style.width = (W + PAD*2) + "px";
   [el.ruler, el.media, el.track].forEach(function(n){ n.style.width = W + "px"; });
@@ -914,6 +1011,9 @@ async function buildWave(){
       buf = await res.arrayBuffer();
     }
     if (!buf || buf.byteLength < 4096) throw new Error("empty");
+    if (!S.mediaFile && !vFileCache && window.File) {
+      try { vFileCache = new File([buf], videoName(), { type: "video/mp4" }); } catch(e){}
+    }
     var AC = window.AudioContext || window.webkitAudioContext;
     var ac = new AC();
     var ab = await decodeAudio(ac, buf);
@@ -1011,6 +1111,14 @@ function newAt(t, seek){
   ed = { mode: "new", id: null, s: s, e: suggestEnd(s), t: "", dirty: false };
   renderEditor(); markSel(); updateOverlay();
 }
+function newSub(){
+  if (playing) pause();
+  var t = r2(clamp(cur, 0, Math.max(0, S.dur)));
+  ed = { mode: "new", id: null, s: t, e: suggestEnd(t), t: "", dirty: false };
+  renderEditor(); markSel(); updateOverlay(); scrollToTime(t);
+  el.ta.focus();
+  toast("＋ " + fmt(t) + "초에 새 자막 · 내용을 입력하세요");
+}
 function syncEditor(){
   if (ed.dirty) return;
   if (document.activeElement === el.ta) return;
@@ -1025,25 +1133,32 @@ function syncEditor(){
   }
 }
 function renderEditor(){
-  var none = ed.mode === "none";
-  var idx = (ed.mode === "edit") ? (S.subs.findIndex(function(x){ return x.id === ed.id; }) + 1) : 0;
-  if (none) {
-    el.selTag.innerHTML = "＋ 새 자막";
-    el.selTag.classList.add("new");
-  } else if (ed.mode === "new") {
-    el.selTag.innerHTML = "＋ 새 자막 · <b>" + fmt(ed.s) + "s</b>부터";
-    el.selTag.classList.add("new");
-  } else {
+  var isEdit = ed.mode === "edit";
+  if (isEdit && !S.subs.some(function(x){ return x.id === ed.id; })) {
+    ed = { mode: "new", id: null, s: clamp(cur, 0, S.dur), e: suggestEnd(clamp(cur, 0, S.dur)), t: "", dirty: false };
+    isEdit = false;
+  }
+  var idx = isEdit ? (S.subs.findIndex(function(x){ return x.id === ed.id; }) + 1) : 0;
+  if (isEdit) {
     el.selTag.innerHTML = "#" + idx + " · <b>" + fmt(ed.s) + "–" + fmt(ed.e) + "s</b> · " + (ed.e - ed.s).toFixed(2) + "초";
     el.selTag.classList.remove("new");
+  } else {
+    el.selTag.innerHTML = "＋ 새 자막 · <b>" + fmt(ed.s) + "s</b>부터";
+    el.selTag.classList.add("new");
   }
-  var isEdit = ed.mode === "edit";
+  el.btnNew.style.display = isEdit ? "" : "none";
   el.btnSplit.style.display = isEdit ? "" : "none";
   el.btnDel.style.display = isEdit ? "" : "none";
   if (el.ta.value !== ed.t) el.ta.value = ed.t;
   el.ta.placeholder = "지금 " + fmt(cur) + "초 자막…  ( / 로 줄바꿈 )";
-  el.btnApply.disabled = none || (!el.ta.value.trim() && ed.mode === "new");
-  el.btnApply.textContent = (ed.mode === "new") ? "추가" : "적용";
+  el.btnApply.disabled = false;
+  el.btnApply.textContent = isEdit ? "적용" : ("＋ 현재 위치(" + fmt(ed.s) + "s)에 자막 추가");
+  el.btnApply.classList.toggle("newsub", !isEdit);
+}
+function scrollToTime(t){
+  var x = t * pps() + PAD;
+  var w = el.tlScroll.clientWidth, sl = el.tlScroll.scrollLeft;
+  if (x < sl + 18 || x > sl + w - 40) el.tlScroll.scrollLeft = Math.max(0, x - w * 0.4);
 }
 el.ta.addEventListener("input", function(){
   if (ed.mode === "none") newAt(cur, false);
@@ -1060,28 +1175,39 @@ el.ta.addEventListener("keydown", function(e){
   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); applyEdit(); }
 });
 el.btnApply.addEventListener("click", applyEdit);
+el.btnNew.addEventListener("click", function(e){ e.stopPropagation(); newSub(); });
 el.btnDel.addEventListener("click", deleteSub);
 el.btnSplit.addEventListener("click", doSplit);
 
 function applyEdit(){
   var txt = String(ed.t || "").replace(/[ \t]+$/mg, "").replace(/^\s+|\s+$/g, "");
-  if (!txt) { toast("자막 내용을 입력해 주세요"); el.ta.focus(); return; }
+  var isNew = (ed.mode !== "edit");
+  var placeholder = false;
+  if (!txt) {
+    if (!isNew) { toast("자막 내용을 입력해 주세요"); el.ta.focus(); return; }
+    txt = "새 자막"; placeholder = true;
+  }
   pushUndo();
-  var wasNew = (ed.mode !== "edit");
-  if (!wasNew) {
+  if (!isNew) {
     var sub = S.subs.find(function(x){ return x.id === ed.id; });
     if (sub) { sub.s = ed.s; sub.e = ed.e; sub.t = txt; }
     ed.t = txt; ed.dirty = false;
+    sortSubs();
+    layoutTimeline(); renderEditor(); scrollToId(ed.id); persist();
+    toast("적용했어요");
+    el.ta.blur();
   } else {
-    if (ed.e - ed.s < 0.08) ed.e = suggestEnd(ed.s);
-    var nu = { id: uid++, s: ed.s, e: ed.e, t: txt };
+    if (ed.e - ed.s < 0.12) ed.e = suggestEnd(ed.s);
+    var nu = { id: uid++, s: r2(ed.s), e: r2(ed.e), t: txt };
     S.subs.push(nu);
+    sortSubs();
     ed = { mode: "edit", id: nu.id, s: nu.s, e: nu.e, t: nu.t, dirty: false };
+    layoutTimeline(); renderEditor(); scrollToId(nu.id); persist();
+    toast("자막을 추가했어요 · 총 " + S.subs.length + "개");
+    if (placeholder) { el.ta.focus(); el.ta.setSelectionRange(0, el.ta.value.length); }
+    else el.ta.blur();
   }
-  sortSubs();
-  layoutTimeline(); renderEditor(); scrollToId(ed.id); persist();
-  toast(wasNew ? "자막을 추가했어요" : "적용했어요");
-  el.ta.blur();
+  updateOverlay();
 }
 function deleteSub(){
   if (ed.mode === "none") { toast("삭제할 자막을 먼저 선택해 주세요"); return; }
@@ -1146,6 +1272,8 @@ el.video.addEventListener("loadedmetadata", function(){
   if (w && h) stageAR = w / h;
   mediaDurClamp();
   try { el.video.currentTime = Math.min(0.02, S.dur); } catch(e){}
+  el.scrub.max = String(S.dur);
+  el.scrub.step = "0.05";
   layoutStage(); layoutTimeline(); renderEditor(); updateOverlay();
   genFrames();
   buildWave();
@@ -1157,18 +1285,30 @@ el.video.addEventListener("play", function(){
 });
 el.video.addEventListener("pause", function(){
   if (playing) { playing = false; document.body.classList.remove("playing"); updateUI(); }
-  syncFromVideo(); syncEditor();
+  if (!seeking) syncFromVideo();
+  syncEditor();
 });
-el.video.addEventListener("seeked", function(){ seeking = false; syncFromVideo(); });
-el.video.addEventListener("timeupdate", function(){ if (!playing) syncFromVideo(); });
-el.video.addEventListener("ended", function(){ cur = S.dur; pause(); });
+el.video.addEventListener("seeked", function(){
+  seeking = false;
+  if (!playing) {
+    var t = clamp(el.video.currentTime || 0, 0, S.dur);
+    var target = (seekT >= 0) ? seekT : cur;
+    if (Math.abs(t - target) <= 0.35) cur = t;
+    else cur = target;
+  }
+  seekT = -1;
+  updateUI();
+});
+el.video.addEventListener("seeking", function(){
+  if (!seeking) { seeking = true; seekAt = performance.now(); }
+});
+el.video.addEventListener("timeupdate", function(){ if (readVideoTime()) updateUI(); });
+el.video.addEventListener("ended", function(){ cur = S.dur; pause(); updateUI(); });
 el.video.addEventListener("error", function(){
   bannerOn("영상을 불러오지 못했어요. <b>···</b> 에서 다른 영상을 골라 주세요.");
 });
 function syncFromVideo(){
-  if (!el.video.readyState) return;
-  var t = clamp(el.video.currentTime || 0, 0, S.dur);
-  if (Math.abs(t - cur) > 0.012) { cur = t; updateUI(); }
+  if (readVideoTime()) updateUI();
 }
 function loadVideoFile(file){
   if (!file) return;
@@ -1179,6 +1319,7 @@ function loadVideoFile(file){
   if (S.src && S.src.indexOf("blob:") === 0) { try { URL.revokeObjectURL(S.src); } catch(e){} }
   frames = []; peaks = null; wvState = "idle";
   S.mediaFile = file;
+  vFileCache = file;
   S.src = url;
   S.name = file.name.replace(/\.[^.]+$/, "");
   el.video.removeAttribute("poster");
@@ -1193,7 +1334,7 @@ function loadVideoFile(file){
 }
 function resetBuiltin(){
   if (S.src && S.src.indexOf("blob:") === 0) { try { URL.revokeObjectURL(S.src); } catch(e){} }
-  S.src = "./clip.mp4"; S.mediaFile = null; frames = []; peaks = null; wvState = "idle";
+  S.src = "./clip.mp4"; S.mediaFile = null; vFileCache = null; frames = []; peaks = null; wvState = "idle";
   el.video.setAttribute("poster", POSTER);
   el.video.src = "./clip.mp4";
   try { el.video.load(); } catch(e){}
@@ -1208,13 +1349,28 @@ function resetBuiltin(){
 var lastF = performance.now();
 function frame(now){
   var dt = (now - lastF) / 1000; lastF = now;
-  if (playing) {
-    if (el.video.readyState >= 2) cur = clamp(el.video.currentTime || 0, 0, S.dur);
-    else { cur = clamp(cur + dt, 0, S.dur); if (cur >= S.dur - 0.001) { cur = S.dur; pause(); } }
-    updateUI();
-    if (cur >= S.dur - 0.02) pause();
+  if (seeking && performance.now() - seekAt > 600) seeking = false;
+  var v = el.video;
+  if (playing || (v && !v.paused)) {
+    if (v && v.readyState >= 2 && !seeking) {
+      if (readVideoTime()) updateUI();
+      if (cur >= S.dur - 0.03) pause();
+    } else if (!v || v.readyState < 2) {
+      cur = clamp(cur + dt, 0, S.dur);
+      updateUI();
+      if (cur >= S.dur - 0.001) { cur = S.dur; pause(); }
+    }
   }
   requestAnimationFrame(frame);
+}
+function tick(){
+  if (seeking && performance.now() - seekAt > 600) seeking = false;
+  var v = el.video;
+  if (!v) return;
+  if (v.readyState >= 2 && !seeking && (playing || !v.paused)) {
+    if (readVideoTime()) updateUI();
+  }
+  syncScrub();
 }
 
 /* ============================================================
@@ -1242,6 +1398,28 @@ function bindScrub(node){
 }
 bindScrub(el.ruler);
 bindScrub(el.phHead);
+bindScrub(el.media);
+
+/* v4 네이티브 스크러버 — iOS Safari에서도 손가락으로 확실하게 앞/버 이동 */
+function scrubStart(){
+  scrubDrag = true;
+  markGesture();
+  if (playing) pause();
+}
+el.scrub.addEventListener("pointerdown", scrubStart);
+el.scrub.addEventListener("touchstart", scrubStart, { passive: true });
+el.scrub.addEventListener("input", function(){
+  scrubDrag = true;
+  markGesture();
+  if (playing) pause();
+  setTime(Number(el.scrub.value));
+});
+el.scrub.addEventListener("change", function(){
+  setTime(Number(el.scrub.value));
+  scrubDrag = false;
+});
+el.scrub.addEventListener("pointerup", function(){ scrubDrag = false; });
+el.scrub.addEventListener("pointercancel", function(){ scrubDrag = false; });
 
 el.track.addEventListener("pointerdown", function(e){
   var seg = e.target.closest ? e.target.closest(".seg") : null;
@@ -1297,11 +1475,8 @@ function endDrag(e, cancelled){
   var d = drag; drag = null;
   if (d.mode === "bg") {
     if (!d.moved && !cancelled) {
-      var r = el.ruler.getBoundingClientRect();
-      if (e.clientX >= r.left - 8 && e.clientX <= r.right + 8) {
-        if (playing) pause();
-        setTime(xToTime(e.clientX));
-      }
+      if (playing) pause();
+      setTime(xToTime(e.clientX));
     }
     return;
   }
@@ -1362,6 +1537,9 @@ function cycleZoom(){
    전송 / 버튼
    ============================================================ */
 el.btnPlay.addEventListener("click", function(){ togglePlay(); });
+el.mPlay.addEventListener("click", function(e){ e.stopPropagation(); markGesture(); togglePlay(); });
+el.mBack.addEventListener("click", function(e){ e.stopPropagation(); jump(-3); });
+el.mFwd.addEventListener("click", function(e){ e.stopPropagation(); jump(3); });
 el.stage.addEventListener("click", function(e){
   if (e.target.closest && e.target.closest("button")) return;
   markGesture(); togglePlay();
@@ -1412,6 +1590,8 @@ el.btnMore.addEventListener("click", function(){
   openSheet("더보기",
     '<button class="mi' + (undoStack.length ? "" : " disabled") + '" id="menuUndo"><span class="ic">↩︎</span><span>실행 취소<span class="sub">방금 한 편집을 되돌려요</span></span><span class="rt">' + (undoStack.length ? undoStack.length + "단계" : "") + '</span></button>' +
     '<button class="mi" data-act="style"><span class="ic">⚙️</span><span>제목 · 자막 스타일<span class="sub">상단 제목, 흰 박스 / 다크 바 / 외곽선, 자막 높이</span></span></button>' +
+    '<div class="grp"></div>' +
+    '<button class="mi" data-x="video"><span class="ic">📥</span><span>영상 저장 / 공유<span class="sub">아이폰 ‘비디오 저장’ → 사진 앱</span></span></button>' +
     '<div class="grp"></div>' +
     '<button class="mi" data-act="pick"><span class="ic">🎬</span><span>다른 영상 불러오기<span class="sub">mp4 · mov (Safari 권장)</span></span></button>' +
     '<button class="mi" data-act="sub"><span class="ic">📄</span><span>자막 파일 불러오기<span class="sub">JSON · SRT · TXT</span></span></button>' +
@@ -1475,6 +1655,7 @@ el.sheetBody.addEventListener("click", function(e){
   }
   else if (x === "copy") doCopy();
   else if (x === "share") doShare();
+  else if (x === "video") saveVideo();
   else if (x === "json") download(".json", "application/json", buildJSON());
   else if (x === "srt") download(".srt", "text/plain;charset=utf-8", buildSRT());
 });
@@ -1485,6 +1666,7 @@ el.fSub.addEventListener("change", function(){ var f = this.files && this.files[
    참외 요청
    ============================================================ */
 var askText = "", askWithSubs = true;
+var vFileCache = null;
 
 function currentRange(){
   var s = null;
@@ -1525,7 +1707,7 @@ function openAsk(){
     '<div class="askbox"><textarea id="askText" placeholder="예) ' + esc(fmt(r[0])) + '~' + esc(fmt(r[1])) + '초 구간만 남기고 컷 편집해줘" autocapitalize="off" spellcheck="false"></textarea></div>' +
     '<div class="swrow"><span class="sw on" id="askSw"></span><span>편집안(타임코드·제목·스타일) 함께 담기</span><span class="n" id="askCnt"></span></div>' +
     '<div class="prevwrap"><div class="prev" id="askPrev"></div></div>' +
-    '<p class="note">복사한 내용을 채팅창에 그대로 붙여넣으면 끝이에요. 참외는 이 타임코드 그대로 다시 구워요.</p>',
+    '<p class="note"><b style="color:#e7f7b8">웹페이지에서는 바로 전송이 안 돼서, 복사 후 채팅에 붙여넣거나 ↗ 공유로 보내주세요.</b><br>참외는 이 타임코드 그대로 받아서 다시 구워요.</p>',
     '<div class="askfoot"><button class="copy" id="askCopy">📋 요청 + 편집안 전체 복사</button><button class="share" id="askShare">↗ 공유</button></div>'
   );
   var taA = $("askText");
@@ -1611,7 +1793,8 @@ el.btnExport.addEventListener("click", function(){
       '<button data-x="json">⬇ JSON</button>' +
       '<button data-x="srt">⬇ SRT</button>' +
     "</div>" +
-    '<div class="note">타임코드·제목·스타일이 모두 담깁니다. / 는 줄바꿈 위치예요.</div>'
+    '<div class="btns one"><button class="vid" data-x="video">📥 영상 저장 / 공유</button></div>' +
+    '<div class="note">아이폰 사진 앱에 저장하려면 위 버튼 → 공유 시트에서 <b>비디오 저장</b>을 골라 주세요.<br>웹페이지 특성상 꾹 눌러 바로 저장은 iOS가 막아 둬서, 영상 화면을 길게 눌러 저장하거나 이 버튼을 써야 해요.<br>타임코드·제목·스타일이 모두 담깁니다. / 는 줄바꿈 위치예요.</div>'
   );
   var inp = $("expName");
   if (inp) inp.addEventListener("input", function(){
@@ -1756,6 +1939,32 @@ function doShare(){
   else doCopy();
 }
 
+/* v4 — 영상을 아이폰 사진 앱에 저장 */
+function videoUrl(){ return S.src || "./clip.mp4"; }
+function videoName(){
+  if (S.mediaFile && S.mediaFile.name) return S.mediaFile.name;
+  return (slug() || "clip") + ".mp4";
+}
+function saveVideoFallback(){
+  var url = videoUrl(), name = videoName();
+  try {
+    var a = document.createElement("a");
+    a.href = url; a.download = name; a.target = "_blank"; a.rel = "noopener";
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ a.remove(); }, 2500);
+    toast("영상 화면에서 길게 눌러 '동영상 저장'을 고르면 사진 앱에 저장돼요");
+  } catch(e){ toast("영상을 열 수 없어요 · 새 탭에서 clip.mp4를 열어 주세요"); }
+}
+function saveVideo(){
+  markGesture();
+  var name = videoName(), f = vFileCache;
+  if (f && navigator.share && navigator.canShare && navigator.canShare({ files: [f] })) {
+    navigator.share({ files: [f], title: name }).catch(function(){});
+    return;
+  }
+  saveVideoFallback();
+}
+
 /* ============================================================
    배너 / 토스트
    ============================================================ */
@@ -1808,6 +2017,9 @@ function boot(){
   syncEditor();
   updateOverlay();
   if (restored) setTimeout(function(){ toast("이전 편집본을 불러왔어요"); }, 800);
+  el.scrub.max = String(S.dur);
+  syncScrub();
+  setInterval(tick, 60);
   requestAnimationFrame(frame);
 }
 function updateSpeedChip(){
