@@ -581,7 +581,7 @@ function persist(){
 }
 function restore(){
   try {
-    var raw = localStorage.getItem(LS_KEY);
+    var raw = localStorage.getItem(LS_KEY) || localStorage.getItem("subedit.v3");
     if (!raw) return false;
     var o = JSON.parse(raw);
     if (!o || !Array.isArray(o.subs) || !o.subs.length) return false;
