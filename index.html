@@ -1342,7 +1342,7 @@ el.tlScroll.addEventListener("touchend", function(e){
 }, { passive: true });
 
 function updateZoomChip(){
-  var z = Math.abs(zoom - Math.round(zoom)) < 0.05 ? Math.round(zoom) : zoom;
+  var z = Math.abs(zoom - Math.round(zoom)) < 0.05 ? String(Math.round(zoom)) : zoom.toFixed(1);
   el.zoomChip.textContent = "줌 " + z + "×";
   el.zoomChip.classList.toggle("on", zoom > 1.01);
 }
